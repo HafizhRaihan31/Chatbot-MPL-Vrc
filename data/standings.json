@@ -1,122 +1,74 @@
 [
   {
-    "rank": "1\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        ONIC\n                                                    \n                                                    \n                                                        ONIC",
-    "team": "14",
-    "matchPoint": "14\n                                                -\n                                                2",
-    "matchWL": "22",
-    "netGameWin": "29\n                                                -\n                                                7",
-    "gameWL": ""
-  },
-  {
-    "rank": "2\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        BTR\n                                                    \n                                                    \n                                                        BIGETRON BY VIT",
-    "team": "12",
-    "matchPoint": "12\n                                                -\n                                                4",
-    "matchWL": "11",
-    "netGameWin": "25\n                                                -\n                                                14",
-    "gameWL": ""
-  },
-  {
-    "rank": "3\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        AE\n                                                    \n                                                    \n                                                        ALTER EGO ESPORTS",
-    "team": "9",
-    "matchPoint": "9\n                                                -\n                                                7",
-    "matchWL": "4",
-    "netGameWin": "23\n                                                -\n                                                19",
-    "gameWL": ""
-  },
-  {
-    "rank": "4\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        EVOS\n                                                    \n                                                    \n                                                        EVOS",
-    "team": "8",
-    "matchPoint": "8\n                                                -\n                                                8",
-    "matchWL": "1",
-    "netGameWin": "20\n                                                -\n                                                19",
-    "gameWL": ""
-  },
-  {
-    "rank": "5\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        DEWA\n                                                    \n                                                    \n                                                        DEWA UNITED",
-    "team": "8",
-    "matchPoint": "8\n                                                -\n                                                8",
-    "matchWL": "-1",
-    "netGameWin": "17\n                                                -\n                                                18",
-    "gameWL": ""
-  },
-  {
-    "rank": "6\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        NAVI\n                                                    \n                                                    \n                                                        NAVI",
-    "team": "6",
-    "matchPoint": "6\n                                                -\n                                                10",
-    "matchWL": "-6",
-    "netGameWin": "16\n                                                -\n                                                22",
-    "gameWL": ""
-  },
-  {
-    "rank": "7\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        RRQ\n                                                    \n                                                    \n                                                        RRQ HOSHI",
-    "team": "6",
-    "matchPoint": "6\n                                                -\n                                                10",
-    "matchWL": "-7",
-    "netGameWin": "15\n                                                -\n                                                22",
-    "gameWL": ""
-  },
-  {
-    "rank": "8\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        GEEK\n                                                    \n                                                    \n                                                        GEEK FAM",
-    "team": "5",
-    "matchPoint": "5\n                                                -\n                                                11",
-    "matchWL": "-11",
-    "netGameWin": "12\n                                                -\n                                                23",
-    "gameWL": ""
-  },
-  {
-    "rank": "9\n                                                \n                                                \n                                                                                                                                                                    \n                                                                                                    \n                                                \n                                                    \n                                                        TLID\n                                                    \n                                                    \n                                                        TEAM LIQUID ID",
-    "team": "4",
-    "matchPoint": "4\n                                                -\n                                                12",
-    "matchWL": "-13",
-    "netGameWin": "13\n                                                -\n                                                26",
-    "gameWL": ""
-  },
-  {
-    "rank": "1st",
+    "rank": 1,
     "team": "ONIC",
-    "matchPoint": "14 - 2",
-    "matchWL": "",
-    "netGameWin": "",
-    "gameWL": ""
+    "teamFull": "ONIC Esports",
+    "win": 14,
+    "lose": 2,
+    "matchPoint": "14 - 2"
   },
   {
-    "rank": "2nd",
+    "rank": 2,
     "team": "BTR",
-    "matchPoint": "12 - 4",
-    "matchWL": "",
-    "netGameWin": "",
-    "gameWL": ""
+    "teamFull": "Bigetron By Vitality",
+    "win": 12,
+    "lose": 4,
+    "matchPoint": "12 - 4"
   },
   {
-    "rank": "3rd",
+    "rank": 3,
     "team": "AE",
-    "matchPoint": "9 - 7",
-    "matchWL": "",
-    "netGameWin": "",
-    "gameWL": ""
+    "teamFull": "Alter Ego Esports",
+    "win": 9,
+    "lose": 7,
+    "matchPoint": "9 - 7"
   },
   {
-    "rank": "4th",
+    "rank": 4,
     "team": "EVOS",
-    "matchPoint": "8 - 8",
-    "matchWL": "",
-    "netGameWin": "",
-    "gameWL": ""
+    "teamFull": "EVOS",
+    "win": 8,
+    "lose": 8,
+    "matchPoint": "8 - 8"
   },
   {
-    "rank": "5th",
+    "rank": 5,
     "team": "DEWA",
-    "matchPoint": "8 - 8",
-    "matchWL": "",
-    "netGameWin": "",
-    "gameWL": ""
+    "teamFull": "Dewa United",
+    "win": 8,
+    "lose": 8,
+    "matchPoint": "8 - 8"
   },
   {
-    "rank": "6th",
+    "rank": 6,
     "team": "NAVI",
-    "matchPoint": "6 - 10",
-    "matchWL": "",
-    "netGameWin": "",
-    "gameWL": ""
+    "teamFull": "NAVI",
+    "win": 6,
+    "lose": 10,
+    "matchPoint": "6 - 10"
+  },
+  {
+    "rank": 7,
+    "team": "RRQ",
+    "teamFull": "RRQ Hoshi",
+    "win": 6,
+    "lose": 10,
+    "matchPoint": "6 - 10"
+  },
+  {
+    "rank": 8,
+    "team": "GEEK",
+    "teamFull": "Geek Fam",
+    "win": 5,
+    "lose": 11,
+    "matchPoint": "5 - 11"
+  },
+  {
+    "rank": 9,
+    "team": "TLID",
+    "teamFull": "Team Liquid ID",
+    "win": 4,
+    "lose": 12,
+    "matchPoint": "4 - 12"
   }
 ]
