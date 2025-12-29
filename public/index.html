@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPL Chatbot</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            glow1: "#A855F7",
+            glow2: "#3B82F6",
+          },
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gradient-to-b from-[#6D28D9] via-[#4C1D95] to-[#1E1B4B] text-white h-screen flex justify-center">
+
+<div class="w-full max-w-lg h-screen flex flex-col px-5 py-6">
+
+  <!-- HEADER -->
+  <h2 class="text-sm font-semibold opacity-70 tracking-wide mb-1">
+    ChatBot MPL ID
+  </h2>
+
+  <h1 class="text-3xl font-extrabold drop-shadow-xl mb-5 leading-snug">
+    Hi friend! <br>Can I help you?
+  </h1>
+
+  <!-- QUICK QUESTIONS -->
+  <div class="grid grid-cols-2 gap-3 mb-5">
+
+    <button onclick="quickSend('jadwal mpl hari ini')"
+      class="glass-btn">Jadwal Hari Ini</button>
+
+    <button onclick="quickSend('klasemen mpl')"
+      class="glass-btn">Klasemen</button>
+
+    <button onclick="quickSend('siapa pemain rrq')"
+      class="glass-btn col-span-2">Pemain RRQ</button>
+
+    <button onclick="quickSend('siapa coach alter ego')"
+      class="glass-btn col-span-2">Coach Alter Ego</button>
+
+  </div>
+
+  <!-- CHAT -->
+  <main id="chat-box"
+    class="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-white/20">
+  </main>
+
+  <!-- INPUT -->
+  <footer class="mt-4">
+    <div class="flex items-center bg-white/20 backdrop-blur-xl 
+      border border-white/30 rounded-full px-5 py-3 shadow-lg">
+
+      <input id="user-input"
+        class="flex-1 bg-transparent text-white placeholder-white/60 focus:outline-none"
+        placeholder="Tanyakan seputar MPL..." />
+
+      <button id="send-btn"
+        class="ml-3 bg-gradient-to-r from-glow1 to-glow2 px-4 py-2 rounded-full shadow-lg">
+        ➤
+      </button>
+    </div>
+  </footer>
+
+</div>
+
+<style>
+  .glass-btn {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 1rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    transition: all .2s;
+  }
+  .glass-btn:hover {
+    background: rgba(255,255,255,0.2);
+  }
+</style>
+
+<script src="script.js"></script>
+
+<script>
+  function quickSend(text) {
+    document.getElementById("user-input").value = text;
+    document.getElementById("send-btn").click();
+  }
+</script>
+
+</body>
+</html>
