@@ -18,7 +18,11 @@ const loadJSON = (name) =>
 
 const teamsDetail = loadJSON("teams_detail.json");
 const standings = loadJSON("standings.json");
-const schedule = loadJSON("schedule.json");
+const scheduleRaw = loadJSON("schedule.json");
+
+const schedule = Array.isArray(scheduleRaw)
+  ? scheduleRaw
+  : Object.values(scheduleRaw || {}).flat();
 
 /* =========================
    UTIL
@@ -49,6 +53,15 @@ const ROLE_ALIAS = {
   ROAM: ["roam", "support"]
 };
 
+const PLAYER_KEYWORDS = [
+  "pemain",
+  "player",
+  "roster",
+  "skuad",
+  "anggota",
+  "lineup"
+];
+
 function matchAlias(text, map) {
   for (const key in map) {
     for (const a of map[key]) {
@@ -59,7 +72,7 @@ function matchAlias(text, map) {
 }
 
 /* =========================
-   OPENROUTER POLISH
+   OPENROUTER – POLISH
 ========================= */
 async function polish(text) {
   if (!process.env.OPENROUTER_API_KEY) return text;
@@ -75,7 +88,7 @@ async function polish(text) {
           {
             role: "system",
             content:
-              "Perhalus kalimat berikut agar natural dan singkat. Jangan mengubah isi."
+              "Perhalus kalimat berikut agar natural dan singkat. Jangan mengubah informasi."
           },
           { role: "user", content: text }
         ],
@@ -96,6 +109,52 @@ async function polish(text) {
 }
 
 /* =========================
+   OPENROUTER – AI FALLBACK (MPL ONLY)
+========================= */
+async function askMPLAI(question) {
+  if (!process.env.OPENROUTER_API_KEY) {
+    return "Maaf, informasi detail belum tersedia saat ini.";
+  }
+
+  try {
+    const r = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model:
+          process.env.OPENROUTER_MODEL ||
+          "meta-llama/llama-3.1-8b-instruct",
+        messages: [
+          {
+            role: "system",
+            content: `
+Kamu adalah asisten khusus MPL Indonesia.
+
+ATURAN WAJIB:
+- HANYA jawab seputar MPL Indonesia.
+- JANGAN mengarang roster, jadwal, hasil pertandingan, atau klasemen.
+- Jika data spesifik tidak pasti, jawab secara UMUM.
+- Jawaban singkat, informatif, netral, dan edukatif.
+`
+          },
+          { role: "user", content: question }
+        ],
+        temperature: 0.3
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    return r.data.choices[0].message.content;
+  } catch {
+    return "Maaf, saya belum dapat menjawab pertanyaan tersebut saat ini.";
+  }
+}
+
+/* =========================
    HANDLER
 ========================= */
 export default async function handler(req, res) {
@@ -106,21 +165,10 @@ export default async function handler(req, res) {
   const msg = clean(req.body?.message || "");
   if (!msg) return res.json({ answer: "Pesan kosong." });
 
-  // 🔒 Filter MPL
-  if (
-    !/(mpl|rrq|onic|alter|btr|evos|aura|dewa|geek|jadwal|klasemen|pemain|pelatih|jungler|gold|mid|exp|roam)/.test(
-      msg
-    )
-  ) {
-    return res.json({
-      answer: "Maaf, saya hanya melayani pertanyaan seputar MPL Indonesia."
-    });
-  }
-
   const team = matchAlias(msg, TEAM_ALIAS);
   const role = matchAlias(msg, ROLE_ALIAS);
 
-  // ROLE QUERY
+  /* ===== ROLE QUERY ===== */
   if (team && role) {
     const t = teamsDetail.find((x) => x.team === team);
     if (!t) return res.json({ answer: "Tim tidak ditemukan." });
@@ -129,26 +177,66 @@ export default async function handler(req, res) {
       p.role.toUpperCase().includes(role)
     );
 
+    if (!found.length) {
+      return res.json({
+        answer: `Data ${role.toLowerCase()} tim ${team} belum tersedia.`
+      });
+    }
+
     const names = found.map((p) => p.name).join(", ");
     return res.json({
       answer: await polish(`${role} tim ${team} adalah ${names}.`)
     });
   }
 
-  // KLASMEN
+  /* ===== SEMUA PEMAIN ===== */
+  if (team && PLAYER_KEYWORDS.some((k) => msg.includes(k))) {
+    const t = teamsDetail.find((x) => x.team === team);
+    if (!t) return res.json({ answer: "Tim tidak ditemukan." });
+
+    const players = t.players.filter(
+      (p) =>
+        !p.role.toUpperCase().includes("COACH") &&
+        !p.role.toUpperCase().includes("ANALYST")
+    );
+
+    const list = players
+      .map((p) => `• ${p.name} (${p.role})`)
+      .join("\n");
+
+    return res.json({
+      answer: await polish(`Daftar pemain tim ${team}:\n${list}`)
+    });
+  }
+
+  /* ===== KLASMEN ===== */
   if (msg.includes("klasemen")) {
-    const text = standings
+    const valid = standings.filter(
+      (t) => t.teamName && t.matchPoint
+    );
+
+    if (!valid.length) {
+      return res.json({
+        answer: "Data klasemen belum tersedia saat ini."
+      });
+    }
+
+    const text = valid
       .slice(0, 8)
       .map((t, i) => `${i + 1}. ${t.teamName} (${t.matchPoint})`)
       .join("\n");
 
-    return res.json({ answer: `Klasemen MPL:\n${text}` });
+    return res.json({
+      answer: `Klasemen MPL saat ini:\n${text}`
+    });
   }
 
-  // JADWAL
+  /* ===== JADWAL HARI INI ===== */
   if (msg.includes("jadwal")) {
     const today = new Date().toLocaleDateString("id-ID");
-    const todayMatches = schedule.filter((m) => m.date === today);
+    const todayMatches = schedule.filter(
+      (m) => m.date === today
+    );
 
     if (!todayMatches.length) {
       return res.json({
@@ -156,15 +244,28 @@ export default async function handler(req, res) {
       });
     }
 
+    const text = todayMatches
+      .map((m) => `${m.team1} vs ${m.team2}`)
+      .join("\n");
+
     return res.json({
-      answer: todayMatches
-        .map((m) => `${m.team1} vs ${m.team2}`)
-        .join("\n")
+      answer: `Jadwal MPL hari ini:\n${text}`
     });
   }
 
+  /* ===== AI FALLBACK (MPL ONLY) ===== */
+  if (
+    /(mpl|mobile legends|rrq|onic|evos|alter|bigetron|dewa|aura|geek)/.test(
+      msg
+    )
+  ) {
+    const aiAnswer = await askMPLAI(msg);
+    return res.json({ answer: aiAnswer });
+  }
+
+  /* ===== DEFAULT ===== */
   return res.json({
     answer:
-      "Format belum dikenali.\nContoh:\n• siapa jungler ONIC\n• klasemen MPL\n• jadwal MPL hari ini"
+      "Maaf, saya hanya dapat menjawab pertanyaan seputar MPL Indonesia."
   });
 }
