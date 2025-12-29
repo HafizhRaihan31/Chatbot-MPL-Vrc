@@ -3,10 +3,18 @@ const API_URL = "/api/chat";
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
+const quickBox = document.getElementById("quick-questions");
 
-// ----------------------
-// Add Message Bubble
-// ----------------------
+/* ======================
+   UTIL
+====================== */
+function hideQuickQuestions() {
+  if (quickBox) quickBox.style.display = "none";
+}
+
+/* ======================
+   CHAT BUBBLE
+====================== */
 function addMessage(text, sender) {
   const div = document.createElement("div");
 
@@ -41,9 +49,9 @@ function addMessage(text, sender) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ----------------------
-// Typing Indicator
-// ----------------------
+/* ======================
+   TYPING INDICATOR
+====================== */
 function showTyping() {
   const div = document.createElement("div");
   div.id = "typing";
@@ -51,7 +59,8 @@ function showTyping() {
 
   div.innerHTML = `
     <img src="assets/mpl.png" class="w-9 h-9 rounded-full shadow">
-    <div class="px-4 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex gap-2 shadow-lg">
+    <div class="px-4 py-3 rounded-2xl bg-white/15 backdrop-blur-md 
+      border border-white/20 flex gap-2 shadow-lg">
       <span class="animate-bounce">●</span>
       <span class="animate-bounce delay-150">●</span>
       <span class="animate-bounce delay-300">●</span>
@@ -67,12 +76,14 @@ function removeTyping() {
   if (t) t.remove();
 }
 
-// ----------------------
-// Send Message
-// ----------------------
+/* ======================
+   SEND MESSAGE
+====================== */
 async function sendMessage() {
   const msg = input.value.trim();
   if (!msg) return;
+
+  hideQuickQuestions();
 
   addMessage(msg, "user");
   input.value = "";
@@ -100,10 +111,16 @@ async function sendMessage() {
   }
 }
 
-// ----------------------
-// Events
-// ----------------------
+/* ======================
+   EVENTS
+====================== */
 sendBtn.onclick = sendMessage;
+
+input.addEventListener("input", () => {
+  if (input.value.trim().length > 0) {
+    hideQuickQuestions();
+  }
+});
 
 input.addEventListener("keypress", (e) => {
   if (e.key === "Enter") sendMessage();
