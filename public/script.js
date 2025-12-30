@@ -1,226 +1,109 @@
-import fs from "fs";
-import path from "path";
-import axios from "axios";
-import { fileURLToPath } from "url";
+const API_URL = "/api/chat";
 
-/* =========================
-   PATH
-========================= */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const root = path.join(__dirname, "..");
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
+const quickBox = document.getElementById("quick-questions");
 
-/* =========================
-   LOAD JSON
-========================= */
-const loadJSON = (name) =>
-  JSON.parse(fs.readFileSync(path.join(root, "data", name), "utf-8"));
-
-const teamsDetail = loadJSON("teams_detail.json");
-const schedule = loadJSON("schedule.json");
-const standings = loadJSON("standings.json");
-
-/* =========================
-   UTIL
-========================= */
-const clean = (t) =>
-  t.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
-
-/* =========================
-   ALIAS
-========================= */
-const TEAM_ALIAS = {
-  AE: ["ae", "alter", "alter ego"],
-  RRQ: ["rrq"],
-  ONIC: ["onic"],
-  EVOS: ["evos"],
-  BTR: ["btr", "bigetron"],
-  DEWA: ["dewa"],
-  GEEK: ["geek"]
-};
-
-const ROLE_ALIAS = {
-  JUNGLE: ["jungler", "jungle", "jg"],
-  GOLD: ["gold", "gold lane", "marksman", "mm"],
-  MID: ["mid", "midlane"],
-  EXP: ["exp", "exp lane"],
-  ROAM: ["roam", "roamer", "support"],
-  COACH: ["coach", "pelatih"]
-};
-
-function matchAlias(text, map) {
-  for (const key in map) {
-    for (const a of map[key]) {
-      if (text.includes(a)) return key;
-    }
+/* ======================
+   QUICK QUESTION HANDLER
+====================== */
+function hideQuickQuestions() {
+  if (quickBox && quickBox.style.display !== "none") {
+    quickBox.style.display = "none";
+    setTimeout(() => {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }, 50);
   }
-  return null;
 }
 
-/* =========================
-   AI POLISHER (NO NEW DATA)
-========================= */
-async function polishWithAI(text) {
-  if (!process.env.OPENROUTER_API_KEY) return text;
+/* ======================
+   CHAT BUBBLE
+====================== */
+function addMessage(text, sender) {
+  const div = document.createElement("div");
+  div.className = `flex items-start gap-3 ${sender === "user" ? "justify-end" : ""}`;
+
+  const botStyle = "bg-white/15 border border-white/20";
+  const userStyle = "bg-gradient-to-r from-purple-500 to-blue-500";
+
+  div.innerHTML = `
+    ${sender === "bot" ? `<img src="assets/mpl.png" class="w-8 h-8 rounded-full">` : ""}
+    <div class="px-4 py-3 rounded-2xl max-w-[75%] ${sender === "user" ? userStyle : botStyle}">
+      ${text}
+    </div>
+    ${sender === "user" ? `<img src="assets/user.jpg" class="w-8 h-8 rounded-full">` : ""}
+  `;
+
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+/* ======================
+   TYPING INDICATOR
+====================== */
+function showTyping() {
+  const div = document.createElement("div");
+  div.id = "typing";
+  div.className = "flex items-center gap-2";
+  div.innerHTML = `
+    <img src="assets/mpl.png" class="w-8 h-8 rounded-full">
+    <span class="opacity-70">AI sedang mengetik...</span>
+  `;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById("typing");
+  if (t) t.remove();
+}
+
+/* ======================
+   SEND MESSAGE
+====================== */
+async function sendMessage() {
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  hideQuickQuestions();
+
+  addMessage(msg, "user");
+  input.value = "";
+  showTyping();
 
   try {
-    const r = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: process.env.OPENROUTER_MODEL,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Rapikan dan ringkas jawaban berikut tanpa menambah informasi baru."
-          },
-          { role: "user", content: text }
-        ],
-        temperature: 0.2
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg })
+    });
 
-    return r.data.choices[0].message.content;
+    const data = await res.json();
+    removeTyping();
+    addMessage(data.answer || "Tidak ada jawaban.", "bot");
   } catch {
-    return text;
+    removeTyping();
+    addMessage("⚠ Tidak dapat menghubungi server.", "bot");
   }
 }
 
-/* =========================
-   GLOBAL DATA AGGREGATOR
-========================= */
-function getAllByRole(role) {
-  const result = [];
+/* ======================
+   EVENTS (FIXED)
+====================== */
+sendBtn.addEventListener("click", sendMessage);
 
-  for (const team of teamsDetail) {
-    for (const p of team.players) {
-      if (p.role.toUpperCase().includes(role)) {
-        result.push({
-          name: p.name,
-          team: team.team
-        });
-      }
-    }
+// FIX ENTER (desktop + mobile)
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    sendMessage();
   }
+});
 
-  return result;
-}
-
-/* =========================
-   HANDLER
-========================= */
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+// Hide quick question when typing
+input.addEventListener("input", () => {
+  if (input.value.trim().length > 0) {
+    hideQuickQuestions();
   }
-
-  const msg = clean(req.body?.message || "");
-  if (!msg) return res.json({ answer: "Pesan kosong." });
-
-  const team = matchAlias(msg, TEAM_ALIAS);
-  const role = matchAlias(msg, ROLE_ALIAS);
-
-  /* ======================
-     CASE 1: GLOBAL ROLE QUERY
-     ex: "semua jungler mpl"
-  ====================== */
-  if (msg.includes("semua") && role) {
-    const players = getAllByRole(role);
-
-    if (!players.length) {
-      return res.json({
-        answer: `Data ${role.toLowerCase()} MPL belum tersedia.`
-      });
-    }
-
-    const grouped = players.reduce((acc, p) => {
-      acc[p.team] = acc[p.team] || [];
-      acc[p.team].push(p.name);
-      return acc;
-    }, {});
-
-    let text = `Daftar ${role.toLowerCase()} di MPL Indonesia:\n`;
-    for (const t in grouped) {
-      text += `\n${t}: ${grouped[t].join(", ")}`;
-    }
-
-    return res.json({
-      answer: await polishWithAI(text)
-    });
-  }
-
-  /* ======================
-     CASE 2: ROLE + TEAM
-     ex: "jungler onic"
-  ====================== */
-  if (team && role) {
-    const t = teamsDetail.find((x) => x.team === team);
-    if (!t) return res.json({ answer: "Tim tidak ditemukan." });
-
-    const found = t.players.filter((p) =>
-      p.role.toUpperCase().includes(role)
-    );
-
-    if (!found.length) {
-      return res.json({
-        answer: `Data ${role.toLowerCase()} tim ${team} belum tersedia.`
-      });
-    }
-
-    const names = found.map((p) => p.name).join(", ");
-    return res.json({
-      answer: await polishWithAI(
-        `${role} tim ${team} adalah ${names}.`
-      )
-    });
-  }
-
-  /* ======================
-     CASE 3: ALL PLAYERS BY TEAM
-  ====================== */
-  if (team && msg.includes("pemain")) {
-    const t = teamsDetail.find((x) => x.team === team);
-    if (!t) return res.json({ answer: "Tim tidak ditemukan." });
-
-    const list = t.players
-      .map((p) => `• ${p.name} (${p.role})`)
-      .join("\n");
-
-    return res.json({
-      answer: await polishWithAI(
-        `Daftar pemain tim ${team}:\n${list}`
-      )
-    });
-  }
-
-  /* ======================
-     CASE 4: AI EDUKATIF (NO DATA)
-  ====================== */
-  if (
-    /(mpl|mobile legends|jungler|roamer|midlane|gold lane)/.test(
-      msg
-    )
-  ) {
-    return res.json({
-      answer:
-        "Pertanyaan tersebut bersifat umum. Silakan ajukan pertanyaan yang lebih spesifik, misalnya:\n" +
-        "• siapa jungler ONIC\n" +
-        "• siapa pemain RRQ\n" +
-        "• peran jungler di MPL"
-    });
-  }
-
-  /* ======================
-     DEFAULT
-  ====================== */
-  return res.json({
-    answer:
-      "Maaf, saya hanya dapat menjawab pertanyaan seputar MPL Indonesia."
-  });
-}
+});
